@@ -1,25 +1,28 @@
 import xarm
 import time
 import math
-delay = 5 # in seconds
+delay = .5 # in seconds
 degreeOfMovement = 30
-degreeOfAngle = 40.0
+degreeOfAngle = 30.0
 
 arm = xarm.Controller('USB')
-def SimultaneousMoveNoAngle(joint1, degree, joint2, angle):
+
+
+# The following method simultaneously moves the position of two joints while having custom DOM for both.
+def SimultaneousMoveNoAngleCustomDOMs(joint1, degree, joint2, angle, DOM1, DOM2):
     currentDegree = arm.getPosition(joint1)
     currentAngle = arm.getPosition(joint2)
     difference1 = degree - currentDegree
     difference2 = angle - currentAngle
-    time1 = difference1 * 1.0 / degreeOfMovement
-    time2 = difference2 * 1.0 / degreeOfMovement
-    tempDegreeOfMovement = degreeOfMovement
+    time1 = difference1 * 1.0 / DOM1
+    time2 = difference2 * 1.0 / DOM2
+    tempDegreeOfMovement = DOM1
     if currentDegree > degree:
         tempDegreeOfMovement *= -1
-    tempDegreeOfAngle = degreeOfMovement
+    tempDegreeOfAngle = DOM2
     if (currentAngle > angle):
         tempDegreeOfAngle *= -1
-    longTime = max(time1, time2)
+    longTime = max(abs(time1), abs(time2))
     for i in range(0, math.ceil(longTime)):
         newPosition = currentDegree + tempDegreeOfMovement
         if (tempDegreeOfMovement > 0 and newPosition > degree):
@@ -46,6 +49,16 @@ def SimultaneousMoveNoAngle(joint1, degree, joint2, angle):
             arm.setPosition(joint2, newAngle)
         currentAngle = newAngle
         time.sleep(delay)
+
+def SimultaneousMoveNoAngle(joint1, degree, joint2, angle):
+    SimultaneousMoveNoAngleCustomDOMs(joint1, degree, joint2, angle, degreeOfMovement, degreeOfMovement)
+
+def SimultaneousMoveNoAngleSecondCustomDOM(joint1, degree, joint2, angle, DOM2):
+    SimultaneousMoveNoAngleCustomDOMs(joint1, degree, joint2, angle, degreeOfMovement, DOM2)
+
+def SimultaneousMoveNoAngleFirstCustomDOM(joint1, degree, joint2, angle, DOM1):
+    SimultaneousMoveNoAngleCustomDOMs(joint1, degree, joint2, angle, DOM1, degreeOfMovement)
+
 
 def SimultaneousMove(joint1, degree, joint2, angle):
     currentDegree = arm.getPosition(joint1)
@@ -86,8 +99,6 @@ def SimultaneousMove(joint1, degree, joint2, angle):
         arm.setPosition(joint2, newAngle)
         currentAngle = newAngle
         time.sleep(delay)
-
-
 
 def setPositionSlow(joint, degree):
     current = arm.getPosition(joint)
